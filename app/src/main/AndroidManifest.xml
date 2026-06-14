@@ -8,7 +8,6 @@
 
     <application
         android:label="Port Doctor"
-        android:icon="@mipmap/ic_launcher"
         android:theme="@android:style/Theme.Material.Light"
         android:supportsRtl="true"
         android:usesCleartextTraffic="true">
