@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
 
         // Header
         TextView title = new TextView(this);
-        title.setText("🩺 Port Doctor");
+        title.setText("Port Doctor");
         title.setTextSize(28);
         title.setTextColor(Color.parseColor("#FF6F00"));
         title.setPadding(0, 0, 0, 5);
@@ -93,7 +93,7 @@ public class MainActivity extends Activity {
 
         // Scan Button
         scanBtn = new Button(this);
-        scanBtn.setText("🔍 Scan Device for Issues");
+        scanBtn.setText("Scan Device for Issues");
         scanBtn.setTextColor(Color.WHITE);
         scanBtn.setBackgroundColor(Color.parseColor("#E65100"));
         scanBtn.setPadding(20, 15, 20, 15);
@@ -102,7 +102,7 @@ public class MainActivity extends Activity {
 
         // Issues container
         TextView issuesLabel = new TextView(this);
-        issuesLabel.setText("\n📋 Detected Issues:");
+        issuesLabel.setText("\nDetected Issues:");
         issuesLabel.setTextColor(Color.WHITE);
         issuesLabel.setTextSize(16);
         issuesLabel.setPadding(0, 20, 0, 10);
@@ -118,7 +118,7 @@ public class MainActivity extends Activity {
         btnRow.setPadding(0, 20, 0, 0);
 
         fixAllBtn = new Button(this);
-        fixAllBtn.setText("⚡ Generate Fixes");
+        fixAllBtn.setText("Generate Fixes");
         fixAllBtn.setTextColor(Color.WHITE);
         fixAllBtn.setBackgroundColor(Color.parseColor("#2E7D32"));
         fixAllBtn.setEnabled(false);
@@ -130,7 +130,7 @@ public class MainActivity extends Activity {
         btnRow.addView(spacer1);
 
         buildBtn = new Button(this);
-        buildBtn.setText("📦 Build Module");
+        buildBtn.setText("Build Module");
         buildBtn.setTextColor(Color.WHITE);
         buildBtn.setBackgroundColor(Color.parseColor("#1565C0"));
         buildBtn.setEnabled(false);
@@ -141,7 +141,7 @@ public class MainActivity extends Activity {
 
         // Report Section
         TextView reportLabel = new TextView(this);
-        reportLabel.setText("\n📊 Reports & Sharing");
+        reportLabel.setText("\nReports & Sharing");
         reportLabel.setTextColor(Color.parseColor("#FF6F00"));
         reportLabel.setTextSize(16);
         reportLabel.setPadding(0, 25, 0, 10);
@@ -151,7 +151,7 @@ public class MainActivity extends Activity {
         reportRow.setOrientation(LinearLayout.HORIZONTAL);
 
         Button reportBtn = new Button(this);
-        reportBtn.setText("📊 Full Report");
+        reportBtn.setText("Full Report");
         reportBtn.setTextColor(Color.WHITE);
         reportBtn.setBackgroundColor(Color.parseColor("#6A1B9A"));
         reportBtn.setOnClickListener(v -> generateFullReport());
@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
         reportRow.addView(spacer2);
 
         Button shareBtn = new Button(this);
-        shareBtn.setText("📤 Share Report");
+        shareBtn.setText("Share Report");
         shareBtn.setTextColor(Color.WHITE);
         shareBtn.setBackgroundColor(Color.parseColor("#00838F"));
         shareBtn.setOnClickListener(v -> shareReport());
@@ -172,14 +172,14 @@ public class MainActivity extends Activity {
 
         // Community Section
         TextView communityLabel = new TextView(this);
-        communityLabel.setText("\n🌐 Community Database");
+        communityLabel.setText("\nCommunity Database");
         communityLabel.setTextColor(Color.parseColor("#FF6F00"));
         communityLabel.setTextSize(16);
         communityLabel.setPadding(0, 25, 0, 10);
         layout.addView(communityLabel);
 
         Button syncBtn = new Button(this);
-        syncBtn.setText("🔄 Sync Community Database");
+        syncBtn.setText("Sync Community Database");
         syncBtn.setTextColor(Color.WHITE);
         syncBtn.setBackgroundColor(Color.parseColor("#00695C"));
         syncBtn.setOnClickListener(v -> syncCommunityDB());
@@ -194,7 +194,7 @@ public class MainActivity extends Activity {
         fixpackRow.setOrientation(LinearLayout.HORIZONTAL);
 
         Button browsePacksBtn = new Button(this);
-        browsePacksBtn.setText("📦 Browse Fix Packs");
+        browsePacksBtn.setText("Browse Fix Packs");
         browsePacksBtn.setTextColor(Color.WHITE);
         browsePacksBtn.setBackgroundColor(Color.parseColor("#37474F"));
         browsePacksBtn.setOnClickListener(v -> browseFixPacks());
@@ -205,7 +205,7 @@ public class MainActivity extends Activity {
         fixpackRow.addView(spacer4);
 
         Button vendorCheckBtn = new Button(this);
-        vendorCheckBtn.setText("🔍 Check Vendor");
+        vendorCheckBtn.setText("Check Vendor");
         vendorCheckBtn.setTextColor(Color.WHITE);
         vendorCheckBtn.setBackgroundColor(Color.parseColor("#BF360C"));
         vendorCheckBtn.setOnClickListener(v -> checkVendorFiles());
@@ -215,7 +215,7 @@ public class MainActivity extends Activity {
 
         // Log
         logText = new TextView(this);
-        logText.setText("\n📄 Scan log will appear here...");
+        logText.setText("\nScan log will appear here...");
         logText.setTextColor(Color.parseColor("#888888"));
         logText.setTextSize(11);
         logText.setPadding(0, 20, 0, 40);
@@ -235,11 +235,10 @@ public class MainActivity extends Activity {
         }
     }
 
-    // ==================== SCAN ====================
     private void runScan() {
         scanBtn.setEnabled(false);
         scanBtn.setText("Scanning...");
-        statusText.setText("🔍 Scanning hardware...");
+        statusText.setText("Scanning hardware...");
         statusText.setTextColor(Color.parseColor("#FF9800"));
         issueContainer.removeAllViews();
 
@@ -258,20 +257,20 @@ public class MainActivity extends Activity {
                 detectedIssues = issues;
                 displayResults();
                 scanBtn.setEnabled(true);
-                scanBtn.setText("🔄 Re-Scan");
+                scanBtn.setText("Re-Scan");
             }
         }.execute();
     }
 
     private void displayResults() {
         if (detectedIssues.isEmpty()) {
-            statusText.setText("✅ No issues detected!");
+            statusText.setText("No issues detected!");
             statusText.setTextColor(Color.parseColor("#4CAF50"));
             logText.setText(scanner.getScanLog());
             return;
         }
 
-        statusText.setText("⚠️ Found " + detectedIssues.size() + " issue(s)");
+        statusText.setText("Found " + detectedIssues.size() + " issue(s)");
         statusText.setTextColor(Color.parseColor("#FF9800"));
 
         checkBoxes = new CheckBox[detectedIssues.size()];
@@ -284,8 +283,8 @@ public class MainActivity extends Activity {
             item.setPadding(10, 8, 10, 8);
 
             CheckBox cb = new CheckBox(this);
-            String icon = issue.severity.equals("HIGH") ? "🔴" : 
-                          issue.severity.equals("MEDIUM") ? "🟡" : "🟢";
+            String icon = issue.severity.equals("HIGH") ? "[!]" : 
+                          issue.severity.equals("MEDIUM") ? "[~]" : "[-]";
             cb.setText(icon + " [" + issue.severity + "] " + issue.name);
             cb.setTextColor(Color.WHITE);
             cb.setChecked(true);
@@ -305,7 +304,6 @@ public class MainActivity extends Activity {
         logText.setText(scanner.getScanLog());
     }
 
-    // ==================== FIXES ====================
     private void generateFixes() {
         List<PortScanner.Issue> selectedIssues = new ArrayList<>();
         for (int i = 0; i < checkBoxes.length; i++) {
@@ -325,7 +323,7 @@ public class MainActivity extends Activity {
         fixEngine = new FixEngine(scanner);
         fixes = fixEngine.generateFixes();
 
-        statusText.setText("✅ Generated " + fixes.size() + " fix(es)");
+        statusText.setText("Generated " + fixes.size() + " fix(es)");
         statusText.setTextColor(Color.parseColor("#4CAF50"));
         buildBtn.setEnabled(true);
 
@@ -356,16 +354,16 @@ public class MainActivity extends Activity {
             protected void onPostExecute(Boolean success) {
                 progressDialog.dismiss();
                 if (success) {
-                    statusText.setText("✅ Module: /sdcard/PortDoctor_FixPack.zip");
+                    statusText.setText("Module saved: /sdcard/PortDoctor_FixPack.zip");
                     statusText.setTextColor(Color.parseColor("#4CAF50"));
                     
                     new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Module Built")
-                        .setMessage("Saved to /sdcard/PortDoctor_FixPack.zip\n\nFlash in Magisk!")
+                        .setMessage("Saved to /sdcard/PortDoctor_FixPack.zip\n\nFlash in Magisk and reboot.")
                         .setPositiveButton("OK", null)
                         .show();
                 } else {
-                    statusText.setText("❌ Build failed!");
+                    statusText.setText("Build failed!");
                     statusText.setTextColor(Color.parseColor("#F44336"));
                     Toast.makeText(MainActivity.this, "Build failed!", Toast.LENGTH_LONG).show();
                 }
@@ -373,7 +371,6 @@ public class MainActivity extends Activity {
         }.execute();
     }
 
-    // ==================== REPORTS ====================
     private void generateFullReport() {
         if (scanner == null) {
             Toast.makeText(this, "Run scan first!", Toast.LENGTH_SHORT).show();
@@ -395,10 +392,10 @@ public class MainActivity extends Activity {
                 lastReport = report;
                 try {
                     ReportGenerator.saveReport(report, "/sdcard/PortDoctor_Report.txt");
-                    statusText.setText("✅ Report saved!");
+                    statusText.setText("Report saved!");
                     statusText.setTextColor(Color.parseColor("#4CAF50"));
                 } catch (Exception e) {
-                    statusText.setText("⚠️ Could not save");
+                    statusText.setText("Could not save report");
                 }
                 showReportPreview();
             }
@@ -408,11 +405,14 @@ public class MainActivity extends Activity {
     private void showReportPreview() {
         if (lastReport == null) return;
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        dialog.setTitle("📊 Scan Report");
+        dialog.setTitle("Scan Report");
         ScrollView sv = new ScrollView(this);
         TextView tv = new TextView(this);
-        tv.setText(lastReport.length() > 3000 ? 
-            lastReport.substring(0, 3000) + "\n\n..." : lastReport);
+        String preview = lastReport;
+        if (preview.length() > 3000) {
+            preview = preview.substring(0, 3000) + "\n\n... (full report in file)";
+        }
+        tv.setText(preview);
         tv.setPadding(20, 20, 20, 20);
         tv.setTextSize(11);
         sv.addView(tv);
@@ -434,7 +434,6 @@ public class MainActivity extends Activity {
         startActivity(Intent.createChooser(shareIntent, "Share via"));
     }
 
-    // ==================== COMMUNITY ====================
     private void syncCommunityDB() {
         progressDialog = ProgressDialog.show(this, "Syncing", 
             "Downloading database...", true);
@@ -449,7 +448,7 @@ public class MainActivity extends Activity {
             @Override
             protected void onPostExecute(CloudSync.SyncResult result) {
                 progressDialog.dismiss();
-                String msg = result.success ? "✅ " + result.message : "⚠️ " + result.message;
+                String msg = result.success ? "OK: " + result.message : "Error: " + result.message;
                 statusText.setText(msg);
                 statusText.setTextColor(result.success ? 
                     Color.parseColor("#4CAF50") : Color.parseColor("#FF9800"));
@@ -487,7 +486,7 @@ public class MainActivity extends Activity {
                 
                 for (FixPackServer.FixPack pack : packs) {
                     TextView tv = new TextView(MainActivity.this);
-                    tv.setText("📦 " + pack.name + "\n   ⬇ " + pack.downloads);
+                    tv.setText(pack.name + " (" + pack.downloads + " downloads)");
                     tv.setTextColor(Color.BLACK);
                     tv.setPadding(5, 10, 5, 10);
                     tv.setOnClickListener(v -> downloadPack(pack));
@@ -509,4 +508,8 @@ public class MainActivity extends Activity {
             @Override
             protected Boolean doInBackground(Void... params) {
                 File f = FixPackServer.downloadFixPack(pack.downloadUrl, 
-                    "
+                    "/sdcard/" + pack.name.replace(" ", "_") + ".zip");
+                return f != null && f.exists();
+            }
+            @Override
+            protected void onPostExe
