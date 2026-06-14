@@ -8,13 +8,21 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.view.View;
 import android.view.ViewGroup;
 import android.graphics.Color;
-import java.io.*;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -44,7 +52,6 @@ public class MainActivity extends Activity {
         layout.setPadding(30, 30, 30, 30);
         layout.setBackgroundColor(Color.parseColor("#1A1A2E"));
 
-        // Device Info Bar
         LinearLayout deviceBar = new LinearLayout(this);
         deviceBar.setOrientation(LinearLayout.HORIZONTAL);
         deviceBar.setPadding(0, 0, 0, 15);
@@ -52,13 +59,13 @@ public class MainActivity extends Activity {
         deviceLabel = new TextView(this);
         String currentDevice = getBuildProp("ro.product.model", "Unknown");
         String currentROM = getBuildProp("ro.build.display.id", "Unknown ROM");
-        deviceLabel.setText("📱 " + currentDevice + "\n📦 " + currentROM);
+        deviceLabel.setText("Device: " + currentDevice + "\nROM: " + currentROM);
         deviceLabel.setTextColor(Color.parseColor("#AAAAAA"));
         deviceLabel.setTextSize(11);
         deviceBar.addView(deviceLabel);
 
         Button changeDeviceBtn = new Button(this);
-        changeDeviceBtn.setText("🔄 Set Device");
+        changeDeviceBtn.setText("Set Device");
         changeDeviceBtn.setTextColor(Color.WHITE);
         changeDeviceBtn.setBackgroundColor(Color.parseColor("#424242"));
         changeDeviceBtn.setTextSize(10);
@@ -69,7 +76,6 @@ public class MainActivity extends Activity {
 
         layout.addView(deviceBar);
 
-        // Header
         TextView title = new TextView(this);
         title.setText("Port Doctor");
         title.setTextSize(28);
@@ -78,20 +84,18 @@ public class MainActivity extends Activity {
         layout.addView(title);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("Universal ROM Port Bug Detector & Fixer");
+        subtitle.setText("ROM Port Bug Detector & Fixer");
         subtitle.setTextColor(Color.parseColor("#AAAAAA"));
         subtitle.setTextSize(14);
         subtitle.setPadding(0, 0, 0, 20);
         layout.addView(subtitle);
 
-        // Status
         statusText = new TextView(this);
-        statusText.setText("Ready to scan. Tap below to start.");
+        statusText.setText("Ready to scan.");
         statusText.setTextColor(Color.parseColor("#4CAF50"));
         statusText.setPadding(0, 0, 0, 15);
         layout.addView(statusText);
 
-        // Scan Button
         scanBtn = new Button(this);
         scanBtn.setText("Scan Device for Issues");
         scanBtn.setTextColor(Color.WHITE);
@@ -100,7 +104,6 @@ public class MainActivity extends Activity {
         scanBtn.setOnClickListener(v -> runScan());
         layout.addView(scanBtn);
 
-        // Issues container
         TextView issuesLabel = new TextView(this);
         issuesLabel.setText("\nDetected Issues:");
         issuesLabel.setTextColor(Color.WHITE);
@@ -112,7 +115,6 @@ public class MainActivity extends Activity {
         issueContainer.setOrientation(LinearLayout.VERTICAL);
         layout.addView(issueContainer);
 
-        // Action Buttons
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setPadding(0, 20, 0, 0);
@@ -139,7 +141,6 @@ public class MainActivity extends Activity {
 
         layout.addView(btnRow);
 
-        // Report Section
         TextView reportLabel = new TextView(this);
         reportLabel.setText("\nReports & Sharing");
         reportLabel.setTextColor(Color.parseColor("#FF6F00"));
@@ -170,7 +171,6 @@ public class MainActivity extends Activity {
 
         layout.addView(reportRow);
 
-        // Community Section
         TextView communityLabel = new TextView(this);
         communityLabel.setText("\nCommunity Database");
         communityLabel.setTextColor(Color.parseColor("#FF6F00"));
@@ -213,7 +213,6 @@ public class MainActivity extends Activity {
 
         layout.addView(fixpackRow);
 
-        // Log
         logText = new TextView(this);
         logText.setText("\nScan log will appear here...");
         logText.setTextColor(Color.parseColor("#888888"));
@@ -225,13 +224,12 @@ public class MainActivity extends Activity {
         scrollView.addView(layout);
         setContentView(scrollView);
 
-        // Load saved preferences
         SharedPreferences prefs = getSharedPreferences("portdoctor", MODE_PRIVATE);
         String savedDevice = prefs.getString("device", "");
         String savedDonor = prefs.getString("donor", "");
         if (!savedDevice.isEmpty()) {
-            deviceLabel.setText("📱 " + savedDevice + 
-                (savedDonor.isEmpty() ? "" : "\n📦 Donor: " + savedDonor));
+            deviceLabel.setText("Device: " + savedDevice + 
+                (savedDonor.isEmpty() ? "" : "\nDonor: " + savedDonor));
         }
     }
 
@@ -283,9 +281,7 @@ public class MainActivity extends Activity {
             item.setPadding(10, 8, 10, 8);
 
             CheckBox cb = new CheckBox(this);
-            String icon = issue.severity.equals("HIGH") ? "[!]" : 
-                          issue.severity.equals("MEDIUM") ? "[~]" : "[-]";
-            cb.setText(icon + " [" + issue.severity + "] " + issue.name);
+            cb.setText("[" + issue.severity + "] " + issue.name);
             cb.setTextColor(Color.WHITE);
             cb.setChecked(true);
             checkBoxes[i] = cb;
@@ -354,9 +350,8 @@ public class MainActivity extends Activity {
             protected void onPostExecute(Boolean success) {
                 progressDialog.dismiss();
                 if (success) {
-                    statusText.setText("Module saved: /sdcard/PortDoctor_FixPack.zip");
+                    statusText.setText("Module saved to /sdcard/");
                     statusText.setTextColor(Color.parseColor("#4CAF50"));
-                    
                     new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Module Built")
                         .setMessage("Saved to /sdcard/PortDoctor_FixPack.zip\n\nFlash in Magisk and reboot.")
@@ -410,7 +405,7 @@ public class MainActivity extends Activity {
         TextView tv = new TextView(this);
         String preview = lastReport;
         if (preview.length() > 3000) {
-            preview = preview.substring(0, 3000) + "\n\n... (full report in file)";
+            preview = preview.substring(0, 3000) + "\n\n... (see file for full report)";
         }
         tv.setText(preview);
         tv.setPadding(20, 20, 20, 20);
@@ -512,4 +507,8 @@ public class MainActivity extends Activity {
                 return f != null && f.exists();
             }
             @Override
-            protected void onPostExe
+            protected void onPostExecute(Boolean ok) {
+                progressDialog.dismiss();
+                Toast.makeText(MainActivity.this, 
+                    ok ? "Downloaded to /sdcard/" : "Download failed!", 
+     
