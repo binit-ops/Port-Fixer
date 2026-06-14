@@ -34,8 +34,14 @@ jobs:
     - name: Build APK
       run: ./gradlew assembleRelease
     
-    - name: List APK files for debugging
-      run: find app/build -name "*.apk" -type f
+    - name: Locate APK
+      run: |
+        echo "Searching for APK files..."
+        find . -name "*.apk" -type f
+        echo "---"
+        ls -la app/build/outputs/apk/release/ || echo "release folder not found"
+        echo "---"
+        find app/build -type d
     
     - name: Sign APK
       run: |
@@ -43,8 +49,11 @@ jobs:
           -alias portdoctor -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass password -keypass password \
           -dname "CN=PortDoctor, OU=Dev, O=PortDoctor, L=City, ST=State, C=IN"
-        UNSIGNED=$(find app/build -name "*.apk" -not -name "*signed*" | head -1)
-        echo "Signing: $UNSIGNED"
+        UNSIGNED=$(find app/build -name "*.apk" -not -name "*signed*" -not -name "*.unsigned*" | head -1)
+        if [ -z "$UNSIGNED" ]; then
+          UNSIGNED=$(find app/build -name "*.apk" | head -1)
+        fi
+        echo "Found APK: $UNSIGNED"
         $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
           --ks release.keystore \
           --ks-pass pass:password \
