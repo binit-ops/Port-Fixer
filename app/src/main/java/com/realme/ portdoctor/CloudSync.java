@@ -42,9 +42,10 @@ public class CloudSync {
             int newEntries = localDB.getDatabase().size() - beforeCount;
             
             return new SyncResult(true, newEntries, 
-                "Downloaded " + newEntries + " new entries from community");
+                "Synced " + newEntries + " entries from community database");
         } catch (Exception e) {
-            return new SyncResult(false, 0, "Sync failed: " + e.getMessage());
+            return new SyncResult(false, 0, 
+                "Sync failed. Check your internet connection.");
         }
     }
 }
