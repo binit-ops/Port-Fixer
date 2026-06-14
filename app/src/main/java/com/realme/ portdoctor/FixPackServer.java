@@ -1,8 +1,14 @@
 package com.realme.portdoctor;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FixPackServer {
 
@@ -54,7 +60,7 @@ public class FixPackServer {
             
             parsePackList(json.toString());
         } catch (Exception e) {
-            // Use empty list if server unavailable
+            // Return empty list if server unavailable
         }
         return availablePacks;
     }
@@ -105,9 +111,9 @@ public class FixPackServer {
         return json.substring(start, end);
     }
 
-    public static File downloadFixPack(String url, String savePath) {
+    public static File downloadFixPack(String urlStr, String savePath) {
         try {
-            URL downloadUrl = new URL(url);
+            URL downloadUrl = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) downloadUrl.openConnection();
             conn.setRequestMethod("GET");
             
