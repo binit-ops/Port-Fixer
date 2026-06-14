@@ -36,39 +36,25 @@ public class PortScanner {
 
     private void initIssues() {
         issues.add(new Issue("Brightness Range Mismatch", 
-            "Panel supports higher brightness than ROM allows", "HIGH", "brightness"));
-        issues.add(new Issue("Auto-Brightness Broken", 
-            "Ambient sensor values don't match brightness curve", "MEDIUM", "brightness"));
-        issues.add(new Issue("Speaker Gain Low", 
-            "Audio mixer paths not optimized for your device", "MEDIUM", "audio"));
-        issues.add(new Issue("Earpiece Volume Low", 
-            "RX digital volume capped in mixer paths", "MEDIUM", "audio"));
-        issues.add(new Issue("Proximity Sensor Broken", 
-            "Screen doesn't turn off during calls", "HIGH", "sensor"));
-        issues.add(new Issue("Auto-Rotation Broken", 
-            "Accelerometer/gyro values not calibrated", "HIGH", "sensor"));
-        issues.add(new Issue("Fingerprint Slow", 
-            "Fingerprint HAL or libs from donor not optimized", "MEDIUM", "sensor"));
-        issues.add(new Issue("Camera Quality Reduced", 
-            "Camera HAL using wrong libs or processing pipeline", "HIGH", "camera"));
-        issues.add(new Issue("Flashlight Dim/Flickering", 
-            "LED current control mismatch", "LOW", "camera"));
-        issues.add(new Issue("Refresh Rate Stuck", 
-            "Display driver not reporting correct modes", "MEDIUM", "display"));
-        issues.add(new Issue("HBM Not Working", 
-            "High Brightness Mode trigger path wrong", "MEDIUM", "display"));
-        issues.add(new Issue("DC Dimming Missing", 
-            "Flicker-free dimming not enabled in kernel", "LOW", "display"));
-        issues.add(new Issue("Charging Speed Capped", 
-            "Charger driver values from donor don't match hardware", "MEDIUM", "thermal"));
-        issues.add(new Issue("Thermal Throttle Aggressive", 
-            "Thermal engine config from donor too conservative", "MEDIUM", "thermal"));
-        issues.add(new Issue("Battery Drain High", 
-            "Wakelocks from mismatched drivers", "MEDIUM", "thermal"));
-        issues.add(new Issue("Vibration Too Weak", 
-            "Haptic driver voltage not calibrated", "LOW", "other"));
-        issues.add(new Issue("Status Bar Padding Wrong", 
-            "Overlay values from donor device don't match", "LOW", "other"));
+            "Panel supports higher brightness than ROM currently allows", "HIGH", "brightness"));
+        issues.add(new Issue("Speaker/Earpiece Volume Low", 
+            "Audio mixer paths may not be optimized for this device", "MEDIUM", "audio"));
+        issues.add(new Issue("Proximity Sensor Issue", 
+            "Screen may not turn off during calls", "HIGH", "sensor"));
+        issues.add(new Issue("Auto-Rotation Issue", 
+            "Accelerometer/Gyroscope may not be calibrated correctly", "HIGH", "sensor"));
+        issues.add(new Issue("Camera Functionality Reduced", 
+            "Camera HAL or processing pipeline may be from donor", "HIGH", "camera"));
+        issues.add(new Issue("Flashlight Control Missing", 
+            "Torch LED path may be incorrect for this device", "LOW", "camera"));
+        issues.add(new Issue("Refresh Rate Limited", 
+            "Display driver may not expose all supported modes", "MEDIUM", "display"));
+        issues.add(new Issue("High Brightness Mode Unavailable", 
+            "HBM trigger path may be missing or incorrect", "MEDIUM", "display"));
+        issues.add(new Issue("Charging Speed Below Capability", 
+            "Charger driver values may be from donor device", "MEDIUM", "thermal"));
+        issues.add(new Issue("Vibration Intensity Low", 
+            "Haptic driver may not be calibrated for this device", "LOW", "other"));
     }
 
     public List<Issue> scanAll() {
@@ -76,7 +62,7 @@ public class PortScanner {
         scanLog.append("=== Port Doctor Scan ===\n");
         scanLog.append("Device: ").append(currentDevice).append("\n");
         if (donorDevice != null && !donorDevice.isEmpty()) {
-            scanLog.append("Donor: ").append(donorDevice).append("\n");
+            scanLog.append("Donor ROM source: ").append(donorDevice).append("\n");
         }
         scanLog.append("Time: ").append(new Date()).append("\n\n");
 
@@ -85,20 +71,29 @@ public class PortScanner {
         checkSensors();
         checkCamera();
         checkDisplay();
-        checkThermal();
+        checkCharging();
         checkOther();
 
-        scanLog.append("\n=== Scan Complete ===\n");
+        // Summary
+        int detected = getDetectedIssues().size();
+        scanLog.append("\n=== Scan Complete: ").append(detected)
+            .append(" issue(s) found ===\n");
+        if (detected == 0) {
+            scanLog.append("Your ROM appears well-configured for this device.\n");
+        }
         return getDetectedIssues();
     }
 
     private void checkBrightness() {
+        scanLog.append("[Brightness]\n");
         try {
             File blDir = new File("/sys/class/backlight/");
             File[] panels = blDir.listFiles();
+            
             if (panels != null && panels.length > 0) {
-                String maxPath = panels[0].getAbsolutePath() + "/max_brightness";
-                String brightPath = panels[0].getAbsolutePath() + "/brightness";
+                File panel = panels[0];
+                String maxPath = panel.getAbsolutePath() + "/max_brightness";
+                String brightPath = panel.getAbsolutePath() + "/brightness";
                 
                 BufferedReader br = new BufferedReader(new FileReader(maxPath));
                 int maxBright = Integer.parseInt(br.readLine().trim());
@@ -108,191 +103,279 @@ public class PortScanner {
                 int currentBright = Integer.parseInt(br.readLine().trim());
                 br.close();
 
-                scanLog.append("[Brightness] Max: ").append(maxBright)
-                    .append(", Current: ").append(currentBright).append("\n");
+                scanLog.append("  Panel detected: ").append(panel.getName()).append("\n");
+                scanLog.append("  Hardware maximum: ").append(maxBright).append("\n");
+                scanLog.append("  Current value: ").append(currentBright).append("\n");
 
                 if (maxBright > 255 && currentBright <= 255) {
                     markDetected("Brightness Range Mismatch");
-                    scanLog.append("  WARNING: Panel supports ").append(maxBright)
-                        .append(" but ROM caps at 255\n");
-                }
-
-                File hbmPath = new File(panels[0].getAbsolutePath() + "/hbm_mode");
-                if (!hbmPath.exists()) {
-                    markDetected("HBM Not Working");
+                    scanLog.append("  -> ISSUE: Panel supports ").append(maxBright)
+                        .append(" but ROM may be capping at lower range\n");
                 } else {
-                    scanLog.append("  HBM mode supported\n");
+                    scanLog.append("  -> OK: Brightness range appears normal\n");
                 }
             } else {
-                markDetected("Brightness Range Mismatch");
-                scanLog.append("  ERROR: No backlight panel found!\n");
+                scanLog.append("  Standard backlight path not found.\n");
+                scanLog.append("  This is normal for some kernels. Brightness may still work.\n");
             }
         } catch (Exception e) {
-            scanLog.append("[Brightness] Error: ").append(e.getMessage()).append("\n");
+            scanLog.append("  Could not check: ").append(e.getMessage()).append("\n");
         }
+        scanLog.append("\n");
     }
 
     private void checkAudio() {
+        scanLog.append("[Audio]\n");
         try {
             File mixerDir = new File("/vendor/etc/");
             File[] mixerFiles = mixerDir.listFiles((dir, name) -> 
                 name.contains("mixer_path") && name.endsWith(".xml"));
             
             if (mixerFiles != null && mixerFiles.length > 0) {
-                scanLog.append("[Audio] Found ").append(mixerFiles.length)
-                    .append(" mixer path files\n");
+                scanLog.append("  Mixer files found: ").append(mixerFiles.length).append("\n");
                 
+                boolean lowVolume = false;
                 for (File f : mixerFiles) {
-                    BufferedReader br = new BufferedReader(new FileReader(f));
-                    StringBuilder content = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) content.append(line);
-                    br.close();
-                    
-                    if (content.toString().contains("RX1 Digital Volume") && 
-                        content.toString().contains("value=\"84\"")) {
-                        markDetected("Earpiece Volume Low");
-                        scanLog.append("  WARNING: Earpiece volume capped at 84 (default)\n");
-                        break;
-                    }
+                    try {
+                        BufferedReader br = new BufferedReader(new FileReader(f));
+                        StringBuilder content = new StringBuilder();
+                        String line;
+                        while ((line = br.readLine()) != null) content.append(line);
+                        br.close();
+                        
+                        if (content.toString().contains("RX1 Digital Volume") && 
+                            content.toString().contains("value=\"84\"")) {
+                            lowVolume = true;
+                            break;
+                        }
+                    } catch (Exception ignored) {}
+                }
+                
+                if (lowVolume) {
+                    markDetected("Speaker/Earpiece Volume Low");
+                    scanLog.append("  -> ISSUE: Volume values appear to be at defaults\n");
+                } else {
+                    scanLog.append("  -> OK: Volume levels appear configured\n");
                 }
             } else {
-                markDetected("Speaker Gain Low");
-                scanLog.append("  ERROR: No mixer paths found\n");
+                scanLog.append("  No mixer files found at standard location\n");
             }
         } catch (Exception e) {
-            scanLog.append("[Audio] Error: ").append(e.getMessage()).append("\n");
+            scanLog.append("  Could not check: ").append(e.getMessage()).append("\n");
         }
+        scanLog.append("\n");
     }
 
     private void checkSensors() {
-        try {
-            File proxFile = new File("/sys/class/sensors/proximity_sensor/raw_data");
-            if (!proxFile.exists()) {
-                proxFile = new File("/sys/devices/virtual/sensors/proximity_sensor/prox_raw");
-            }
-            if (!proxFile.exists()) {
-                markDetected("Proximity Sensor Broken");
-                scanLog.append("[Sensors] WARNING: Proximity sensor not found\n");
-            } else {
-                scanLog.append("[Sensors] Proximity sensor detected\n");
-            }
+        scanLog.append("[Sensors]\n");
+        boolean proxOk = false;
+        boolean accelOk = false;
 
-            File accelFile = new File("/sys/class/sensors/accelerometer_sensor/raw_data");
-            if (!accelFile.exists()) {
-                markDetected("Auto-Rotation Broken");
-                scanLog.append("[Sensors] WARNING: Accelerometer not found\n");
-            } else {
-                scanLog.append("[Sensors] Accelerometer detected\n");
-            }
-        } catch (Exception e) {
-            scanLog.append("[Sensors] Error: ").append(e.getMessage()).append("\n");
+        // Check proximity via multiple universal paths
+        String[] proxPaths = {
+            "/sys/class/sensors/proximity_sensor/raw_data",
+            "/sys/devices/virtual/sensors/proximity_sensor/prox_raw",
+            "/sys/bus/platform/drivers/proximity/proximity_sensor",
+            "/proc/proximity"
+        };
+        for (String p : proxPaths) {
+            if (new File(p).exists()) { proxOk = true; break; }
         }
+
+        // Check accelerometer via multiple universal paths
+        String[] accelPaths = {
+            "/sys/class/sensors/accelerometer_sensor/raw_data",
+            "/sys/devices/virtual/sensors/accelerometer_sensor/accel_data",
+            "/sys/bus/iio/devices/iio:device0/in_accel_x_raw"
+        };
+        for (String p : accelPaths) {
+            if (new File(p).exists()) { accelOk = true; break; }
+        }
+
+        // Check sensor service via getprop (universal)
+        try {
+            Process proc = Runtime.getRuntime().exec("getprop init.svc.sensors");
+            BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+            String status = br.readLine();
+            br.close();
+            scanLog.append("  Sensor service: ").append(status != null ? status.trim() : "unknown").append("\n");
+        } catch (Exception ignored) {}
+
+        if (!proxOk) {
+            markDetected("Proximity Sensor Issue");
+            scanLog.append("  -> ISSUE: Proximity sensor path not detected\n");
+        } else {
+            scanLog.append("  Proximity sensor: Detected\n");
+        }
+
+        if (!accelOk) {
+            markDetected("Auto-Rotation Issue");
+            scanLog.append("  -> ISSUE: Accelerometer path not detected\n");
+        } else {
+            scanLog.append("  Accelerometer: Detected\n");
+        }
+        scanLog.append("\n");
     }
 
     private void checkCamera() {
+        scanLog.append("[Camera]\n");
         try {
-            File cameraDir = new File("/vendor/lib64/");
-            File[] cameraLibs = cameraDir.listFiles((dir, name) -> 
-                name.contains("camera") && name.endsWith(".so"));
+            // Check camera HAL libraries
+            int libCount = 0;
+            String[] libDirs = {"/vendor/lib64/", "/vendor/lib/"};
+            for (String dir : libDirs) {
+                File d = new File(dir);
+                File[] libs = d.listFiles((f, name) -> 
+                    name.contains("camera") && name.endsWith(".so"));
+                if (libs != null) libCount += libs.length;
+            }
             
-            if (cameraLibs == null || cameraLibs.length < 5) {
-                markDetected("Camera Quality Reduced");
-                scanLog.append("[Camera] WARNING: Camera libraries may be incomplete\n");
+            if (libCount > 0) {
+                scanLog.append("  Camera libraries: ").append(libCount).append(" found\n");
             } else {
-                scanLog.append("[Camera] ").append(cameraLibs.length)
-                    .append(" camera libraries found\n");
+                markDetected("Camera Functionality Reduced");
+                scanLog.append("  -> ISSUE: No camera libraries detected\n");
             }
 
-            File flashFile = new File("/sys/class/leds/flashlight/brightness");
-            if (!flashFile.exists()) {
-                flashFile = new File("/sys/class/leds/torch-light/brightness");
+            // Check flashlight via universal paths
+            String[] flashPaths = {
+                "/sys/class/leds/flashlight/brightness",
+                "/sys/class/leds/torch-light/brightness",
+                "/sys/class/leds/led:torch_0/brightness",
+                "/sys/class/leds/led:flash_0/brightness",
+                "/sys/class/leds/led:switch/brightness"
+            };
+            boolean flashFound = false;
+            for (String p : flashPaths) {
+                if (new File(p).exists()) { flashFound = true; break; }
             }
-            if (!flashFile.exists()) {
-                markDetected("Flashlight Dim/Flickering");
-                scanLog.append("[Camera] WARNING: Flashlight control not found\n");
+            
+            if (flashFound) {
+                scanLog.append("  Flashlight control: Detected\n");
+            } else {
+                markDetected("Flashlight Control Missing");
+                scanLog.append("  -> ISSUE: Flashlight path not found\n");
             }
         } catch (Exception e) {
-            scanLog.append("[Camera] Error: ").append(e.getMessage()).append("\n");
+            scanLog.append("  Could not check: ").append(e.getMessage()).append("\n");
         }
+        scanLog.append("\n");
     }
 
     private void checkDisplay() {
-        try {
-            File refreshFile = new File("/sys/class/graphics/fb0/refresh_rate");
-            if (refreshFile.exists()) {
-                BufferedReader br = new BufferedReader(new FileReader(refreshFile));
-                String rate = br.readLine().trim();
-                br.close();
-                scanLog.append("[Display] Current refresh rate: ").append(rate).append("Hz\n");
-            } else {
-                markDetected("Refresh Rate Stuck");
-                scanLog.append("[Display] WARNING: Refresh rate control not found\n");
+        scanLog.append("[Display]\n");
+        
+        // Check refresh rate via universal paths
+        String[] refreshPaths = {
+            "/sys/class/graphics/fb0/refresh_rate",
+            "/sys/class/graphics/fb0/fps",
+            "/sys/devices/virtual/graphics/fb0/refresh_rate"
+        };
+        boolean refreshFound = false;
+        for (String p : refreshPaths) {
+            File f = new File(p);
+            if (f.exists()) {
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(f));
+                    scanLog.append("  Refresh rate: ").append(br.readLine().trim()).append(" Hz\n");
+                    br.close();
+                    refreshFound = true;
+                    break;
+                } catch (Exception ignored) {}
             }
-
-            File dcDimming = new File("/sys/class/backlight/panel0-backlight/dc_mode");
-            if (!dcDimming.exists()) {
-                dcDimming = new File("/sys/class/backlight/backlight/dc_mode");
-            }
-            if (!dcDimming.exists()) {
-                markDetected("DC Dimming Missing");
-                scanLog.append("[Display] WARNING: DC dimming not available\n");
-            } else {
-                scanLog.append("[Display] DC dimming supported\n");
-            }
-        } catch (Exception e) {
-            scanLog.append("[Display] Error: ").append(e.getMessage()).append("\n");
         }
+        if (!refreshFound) {
+            markDetected("Refresh Rate Limited");
+            scanLog.append("  -> ISSUE: Refresh rate info not exposed by kernel\n");
+        }
+
+        // Check HBM via universal paths
+        String[] hbmPaths = {
+            "/sys/class/backlight/panel0-backlight/hbm_mode",
+            "/sys/class/backlight/backlight/hbm_mode",
+            "/sys/class/backlight/panel0-backlight/hbm"
+        };
+        boolean hbmFound = false;
+        for (String p : hbmPaths) {
+            if (new File(p).exists()) { hbmFound = true; break; }
+        }
+        if (hbmFound) {
+            scanLog.append("  HBM: Supported\n");
+        } else {
+            markDetected("High Brightness Mode Unavailable");
+            scanLog.append("  -> ISSUE: HBM path not found\n");
+        }
+        scanLog.append("\n");
     }
 
-    private void checkThermal() {
-        try {
-            File thermalDir = new File("/sys/class/thermal/");
-            File[] zones = thermalDir.listFiles((dir, name) -> 
-                name.startsWith("thermal_zone"));
-            
-            if (zones != null) {
-                scanLog.append("[Thermal] Found ").append(zones.length).append(" zones\n");
+    private void checkCharging() {
+        scanLog.append("[Charging]\n");
+        String[] chargePaths = {
+            "/sys/class/power_supply/battery/current_max",
+            "/sys/class/power_supply/battery/constant_charge_current_max",
+            "/sys/class/power_supply/battery/input_current_max"
+        };
+        boolean found = false;
+        for (String p : chargePaths) {
+            File f = new File(p);
+            if (f.exists()) {
+                try {
+                    BufferedReader br = new BufferedReader(new FileReader(f));
+                    int val = Integer.parseInt(br.readLine().trim());
+                    br.close();
+                    int ma = val / 1000;
+                    scanLog.append("  Max current: ").append(ma).append(" mA\n");
+                    if (ma > 0 && ma < 2000) {
+                        markDetected("Charging Speed Below Capability");
+                        scanLog.append("  -> ISSUE: Charging may be capped\n");
+                    } else {
+                        scanLog.append("  -> OK: Charging current appears normal\n");
+                    }
+                    found = true;
+                    break;
+                } catch (Exception ignored) {}
             }
-
-            File chargingFile = new File("/sys/class/power_supply/battery/current_max");
-            if (chargingFile.exists()) {
-                BufferedReader br = new BufferedReader(new FileReader(chargingFile));
-                int currentMax = Integer.parseInt(br.readLine().trim());
-                br.close();
-                if (currentMax < 2000000) {
-                    markDetected("Charging Speed Capped");
-                    scanLog.append("[Thermal] WARNING: Max current: ").append(currentMax / 1000)
-                        .append("mA (may be capped)\n");
-                }
-            }
-        } catch (Exception e) {
-            scanLog.append("[Thermal] Error: ").append(e.getMessage()).append("\n");
         }
+        if (!found) {
+            scanLog.append("  Charging info not available via sysfs\n");
+        }
+        scanLog.append("\n");
     }
 
     private void checkOther() {
-        try {
-            File vibratorFile = new File("/sys/class/leds/vibrator/activate");
-            if (!vibratorFile.exists()) {
-                markDetected("Vibration Too Weak");
-                scanLog.append("[Other] WARNING: Vibration control not found\n");
-            }
-
-            File buildProp = new File("/system/build.prop");
-            if (buildProp.exists()) {
-                BufferedReader br = new BufferedReader(new FileReader(buildProp));
-                String line;
-                while ((line = br.readLine()) != null) {
-                    if (line.contains("ro.sf.lcd_density")) {
-                        scanLog.append("[Other] LCD Density: ").append(line).append("\n");
-                    }
-                }
-                br.close();
-            }
-        } catch (Exception e) {
-            scanLog.append("[Other] Error: ").append(e.getMessage()).append("\n");
+        scanLog.append("[Other]\n");
+        
+        // Vibration - universal paths
+        String[] vibePaths = {
+            "/sys/class/leds/vibrator/activate",
+            "/sys/class/leds/vibrator/duration",
+            "/sys/devices/virtual/timed_output/vibrator/enable",
+            "/sys/class/timed_output/vibrator/enable"
+        };
+        boolean vibeFound = false;
+        for (String p : vibePaths) {
+            if (new File(p).exists()) { vibeFound = true; break; }
         }
+        if (vibeFound) {
+            scanLog.append("  Vibration control: Detected\n");
+        } else {
+            markDetected("Vibration Intensity Low");
+            scanLog.append("  -> ISSUE: Vibration path not found\n");
+        }
+
+        // System info via getprop (universal, no permission issues)
+        try {
+            Process p = Runtime.getRuntime().exec("getprop ro.build.version.release");
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String ver = br.readLine(); br.close();
+            scanLog.append("  Android version: ").append(ver != null ? ver.trim() : "?").append("\n");
+            
+            p = Runtime.getRuntime().exec("getprop ro.sf.lcd_density");
+            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String density = br.readLine(); br.close();
+            scanLog.append("  Display density: ").append(density != null ? density.trim() : "?").append(" DPI\n");
+        } catch (Exception ignored) {}
+        scanLog.append("\n");
     }
 
     private void markDetected(String issueName) {
@@ -320,4 +403,4 @@ public class PortScanner {
     public List<Issue> getAllIssues() {
         return issues;
     }
-            }
+}
