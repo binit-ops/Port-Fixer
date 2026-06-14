@@ -32,34 +32,26 @@ jobs:
         chmod +x gradlew
     
     - name: Build APK
-      run: ./gradlew assembleRelease 2>&1 | tee build.log
+      run: ./gradlew assembleRelease
     
-    - name: Show errors if build failed
-      if: failure()
-      run: grep -E "error:|Error:" build.log || echo "No specific errors found in log"
-    
-    - name: Upload build log
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-log
-        path: build.log
+    - name: List APK files for debugging
+      run: find app/build -name "*.apk" -type f
     
     - name: Sign APK
-      if: success()
       run: |
         keytool -genkey -v -keystore release.keystore \
           -alias portdoctor -keyalg RSA -keysize 2048 -validity 10000 \
           -storepass password -keypass password \
           -dname "CN=PortDoctor, OU=Dev, O=PortDoctor, L=City, ST=State, C=IN"
+        UNSIGNED=$(find app/build -name "*.apk" -not -name "*signed*" | head -1)
+        echo "Signing: $UNSIGNED"
         $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
           --ks release.keystore \
           --ks-pass pass:password \
           --out app/build/outputs/apk/release/PortDoctor-signed.apk \
-          app/build/outputs/apk/release/app-release-unsigned.apk
+          "$UNSIGNED"
     
     - name: Upload Signed APK
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: PortDoctor-APK
