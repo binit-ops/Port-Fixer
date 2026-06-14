@@ -20,6 +20,7 @@ import android.view.Gravity;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class MainActivity extends Activity {
     private String lastReport;
     private ProgressDialog progressDialog;
 
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -231,6 +233,7 @@ public class MainActivity extends Activity {
         if (!sd.isEmpty()) deviceLabel.setText("Device: " + sd);
     }
 
+    // ==================== UI HELPERS ====================
     private LinearLayout glassCard(int radius, int marginTop) {
         LinearLayout card = new LinearLayout(this);
         GradientDrawable gd = new GradientDrawable();
@@ -287,6 +290,7 @@ public class MainActivity extends Activity {
         return btn;
     }
 
+    // ==================== CORE METHODS ====================
     private void runScan() {
         scanBtn.setEnabled(false);
         scanBtn.setText("Scanning...");
@@ -353,26 +357,55 @@ public class MainActivity extends Activity {
         buildBtn.setAlpha(1.0f);
     }
 
+    // ==================== FIXED BUILD MODULE ====================
     private void buildModule() {
-        progressDialog = ProgressDialog.show(this, "", "Building...", true);
-        new AsyncTask() {
-            protected Object doInBackground(Object[] p) {
-                try { ModuleBuilder.buildModule(fixes, "/sdcard/PortDoctor_FixPack.zip"); return true; }
-                catch (Exception e) { return false; }
+        if (fixes == null || fixes.isEmpty()) {
+            Toast.makeText(this, "Generate fixes first!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        progressDialog = ProgressDialog.show(this, "", "Building module...", true);
+        final File outDir = getExternalFilesDir(null);
+
+        new AsyncTask<Void, Void, Object[]>() {
+            @Override
+            protected Object[] doInBackground(Void... params) {
+                try {
+                    File zip = ModuleBuilder.buildModule(fixes, outDir);
+                    return new Object[]{true, zip.getAbsolutePath()};
+                } catch (Exception e) {
+                    return new Object[]{false, e.getMessage()};
+                }
             }
-            protected void onPostExecute(Object r) {
+
+            @Override
+            protected void onPostExecute(Object[] result) {
                 progressDialog.dismiss();
-                if ((Boolean) r) {
+                boolean success = (Boolean) result[0];
+                if (success) {
+                    String path = (String) result[1];
                     statusText.setText("Module saved!");
+                    statusText.setTextColor(Color.parseColor("#4CAF50"));
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Module Built")
-                        .setMessage("Flash in Magisk to apply fixes.")
-                        .setPositiveButton("OK", null).show();
-                } else { statusText.setText("Build failed!"); }
+                        .setTitle("Module Built Successfully")
+                        .setMessage("Saved to:\n" + path + "\n\nFlash this file in Magisk.")
+                        .setPositiveButton("OK", null)
+                        .show();
+                } else {
+                    String error = (String) result[1];
+                    statusText.setText("Build failed!");
+                    statusText.setTextColor(Color.parseColor("#FF4757"));
+                    new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("Build Failed")
+                        .setMessage("Error: " + error)
+                        .setPositiveButton("OK", null)
+                        .show();
+                }
             }
         }.execute();
     }
 
+    // ==================== REPORT METHODS ====================
     private void generateFullReport() {
         progressDialog = ProgressDialog.show(this, "", "Creating report...", true);
         new AsyncTask() {
@@ -446,11 +479,4 @@ public class MainActivity extends Activity {
         b.setNegativeButton("Cancel", null); b.show();
     }
 
-    private String getprop(String key, String def) {
-        try {
-            Process p = Runtime.getRuntime().exec("getprop " + key);
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String v = br.readLine(); br.close(); return v != null ? v.trim() : def;
-        } catch (Exception e) { return def; }
-    }
-            }
+    private String get
