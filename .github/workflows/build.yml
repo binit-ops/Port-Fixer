@@ -31,12 +31,19 @@ jobs:
         gradle wrapper --gradle-version 8.2
         chmod +x gradlew
     
-    - name: Compile Java only (show all errors)
-      run: ./gradlew app:compileReleaseJavaWithJavac 2>&1 | grep -A5 "error:"
-    
     - name: Build APK
-      if: success()
-      run: ./gradlew assembleRelease
+      run: ./gradlew assembleRelease 2>&1 | tee build.log
+    
+    - name: Show errors if build failed
+      if: failure()
+      run: grep -E "error:|Error:" build.log || echo "No specific errors found in log"
+    
+    - name: Upload build log
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
     
     - name: Sign APK
       if: success()
