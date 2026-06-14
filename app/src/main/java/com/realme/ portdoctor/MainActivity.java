@@ -39,13 +39,12 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Build UI
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(30, 30, 30, 30);
         layout.setBackgroundColor(Color.parseColor("#1A1A2E"));
 
-        // ==================== DEVICE INFO BAR ====================
+        // Device Info Bar
         LinearLayout deviceBar = new LinearLayout(this);
         deviceBar.setOrientation(LinearLayout.HORIZONTAL);
         deviceBar.setPadding(0, 0, 0, 15);
@@ -70,7 +69,7 @@ public class MainActivity extends Activity {
 
         layout.addView(deviceBar);
 
-        // ==================== HEADER ====================
+        // Header
         TextView title = new TextView(this);
         title.setText("🩺 Port Doctor");
         title.setTextSize(28);
@@ -85,14 +84,14 @@ public class MainActivity extends Activity {
         subtitle.setPadding(0, 0, 0, 20);
         layout.addView(subtitle);
 
-        // ==================== STATUS ====================
+        // Status
         statusText = new TextView(this);
         statusText.setText("Ready to scan. Tap below to start.");
         statusText.setTextColor(Color.parseColor("#4CAF50"));
         statusText.setPadding(0, 0, 0, 15);
         layout.addView(statusText);
 
-        // ==================== SCAN BUTTON ====================
+        // Scan Button
         scanBtn = new Button(this);
         scanBtn.setText("🔍 Scan Device for Issues");
         scanBtn.setTextColor(Color.WHITE);
@@ -101,7 +100,7 @@ public class MainActivity extends Activity {
         scanBtn.setOnClickListener(v -> runScan());
         layout.addView(scanBtn);
 
-        // ==================== ISSUES CONTAINER ====================
+        // Issues container
         TextView issuesLabel = new TextView(this);
         issuesLabel.setText("\n📋 Detected Issues:");
         issuesLabel.setTextColor(Color.WHITE);
@@ -113,7 +112,7 @@ public class MainActivity extends Activity {
         issueContainer.setOrientation(LinearLayout.VERTICAL);
         layout.addView(issueContainer);
 
-        // ==================== ACTION BUTTONS ====================
+        // Action Buttons
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setPadding(0, 20, 0, 0);
@@ -140,7 +139,7 @@ public class MainActivity extends Activity {
 
         layout.addView(btnRow);
 
-        // ==================== REPORT SECTION ====================
+        // Report Section
         TextView reportLabel = new TextView(this);
         reportLabel.setText("\n📊 Reports & Sharing");
         reportLabel.setTextColor(Color.parseColor("#FF6F00"));
@@ -171,7 +170,7 @@ public class MainActivity extends Activity {
 
         layout.addView(reportRow);
 
-        // ==================== COMMUNITY SECTION ====================
+        // Community Section
         TextView communityLabel = new TextView(this);
         communityLabel.setText("\n🌐 Community Database");
         communityLabel.setTextColor(Color.parseColor("#FF6F00"));
@@ -206,7 +205,7 @@ public class MainActivity extends Activity {
         fixpackRow.addView(spacer4);
 
         Button vendorCheckBtn = new Button(this);
-        vendorCheckBtn.setText("🔍 Check Vendor Files");
+        vendorCheckBtn.setText("🔍 Check Vendor");
         vendorCheckBtn.setTextColor(Color.WHITE);
         vendorCheckBtn.setBackgroundColor(Color.parseColor("#BF360C"));
         vendorCheckBtn.setOnClickListener(v -> checkVendorFiles());
@@ -214,7 +213,7 @@ public class MainActivity extends Activity {
 
         layout.addView(fixpackRow);
 
-        // ==================== LOG ====================
+        // Log
         logText = new TextView(this);
         logText.setText("\n📄 Scan log will appear here...");
         logText.setTextColor(Color.parseColor("#888888"));
@@ -222,7 +221,6 @@ public class MainActivity extends Activity {
         logText.setPadding(0, 20, 0, 40);
         layout.addView(logText);
 
-        // ==================== SCROLL VIEW ====================
         ScrollView scrollView = new ScrollView(this);
         scrollView.addView(layout);
         setContentView(scrollView);
@@ -237,7 +235,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // ==================== CORE: SCAN ====================
+    // ==================== SCAN ====================
     private void runScan() {
         scanBtn.setEnabled(false);
         scanBtn.setText("Scanning...");
@@ -267,7 +265,7 @@ public class MainActivity extends Activity {
 
     private void displayResults() {
         if (detectedIssues.isEmpty()) {
-            statusText.setText("✅ No issues detected! Your ROM is healthy.");
+            statusText.setText("✅ No issues detected!");
             statusText.setTextColor(Color.parseColor("#4CAF50"));
             logText.setText(scanner.getScanLog());
             return;
@@ -307,7 +305,7 @@ public class MainActivity extends Activity {
         logText.setText(scanner.getScanLog());
     }
 
-    // ==================== CORE: GENERATE FIXES ====================
+    // ==================== FIXES ====================
     private void generateFixes() {
         List<PortScanner.Issue> selectedIssues = new ArrayList<>();
         for (int i = 0; i < checkBoxes.length; i++) {
@@ -331,11 +329,9 @@ public class MainActivity extends Activity {
         statusText.setTextColor(Color.parseColor("#4CAF50"));
         buildBtn.setEnabled(true);
 
-        Toast.makeText(this, fixes.size() + " fixes ready! Tap Build Module.", 
-            Toast.LENGTH_LONG).show();
+        Toast.makeText(this, fixes.size() + " fixes ready!", Toast.LENGTH_LONG).show();
     }
 
-    // ==================== CORE: BUILD MODULE ====================
     private void buildModule() {
         if (fixes == null || fixes.isEmpty()) {
             Toast.makeText(this, "Generate fixes first!", Toast.LENGTH_SHORT).show();
@@ -364,31 +360,20 @@ public class MainActivity extends Activity {
                     statusText.setTextColor(Color.parseColor("#4CAF50"));
                     
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Module Built Successfully")
-                        .setMessage("📦 Saved to: /sdcard/PortDoctor_FixPack.zip\n\n" +
-                            "Flash this file in Magisk to apply all fixes.\n" +
-                            "Reboot after flashing.\n\n" +
-                            "Share this module with other users!")
+                        .setTitle("Module Built")
+                        .setMessage("Saved to /sdcard/PortDoctor_FixPack.zip\n\nFlash in Magisk!")
                         .setPositiveButton("OK", null)
-                        .setNegativeButton("Share Module", (d, w) -> {
-                            Intent share = new Intent(Intent.ACTION_SEND);
-                            share.setType("application/zip");
-                            share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(
-                                new File("/sdcard/PortDoctor_FixPack.zip")));
-                            startActivity(Intent.createChooser(share, "Share Fix Pack"));
-                        })
                         .show();
                 } else {
                     statusText.setText("❌ Build failed!");
                     statusText.setTextColor(Color.parseColor("#F44336"));
-                    Toast.makeText(MainActivity.this, 
-                        "Build failed! Check storage permissions.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Build failed!", Toast.LENGTH_LONG).show();
                 }
             }
         }.execute();
     }
 
-    // ==================== REPORT: GENERATE ====================
+    // ==================== REPORTS ====================
     private void generateFullReport() {
         if (scanner == null) {
             Toast.makeText(this, "Run scan first!", Toast.LENGTH_SHORT).show();
@@ -396,7 +381,7 @@ public class MainActivity extends Activity {
         }
 
         progressDialog = ProgressDialog.show(this, "Generating", 
-            "Creating detailed report...", true);
+            "Creating report...", true);
 
         new AsyncTask<Void, Void, String>() {
             @Override
@@ -408,15 +393,13 @@ public class MainActivity extends Activity {
             protected void onPostExecute(String report) {
                 progressDialog.dismiss();
                 lastReport = report;
-                
                 try {
                     ReportGenerator.saveReport(report, "/sdcard/PortDoctor_Report.txt");
-                    statusText.setText("✅ Report: /sdcard/PortDoctor_Report.txt");
+                    statusText.setText("✅ Report saved!");
                     statusText.setTextColor(Color.parseColor("#4CAF50"));
                 } catch (Exception e) {
-                    statusText.setText("⚠️ Could not save report");
+                    statusText.setText("⚠️ Could not save");
                 }
-
                 showReportPreview();
             }
         }.execute();
@@ -424,45 +407,37 @@ public class MainActivity extends Activity {
 
     private void showReportPreview() {
         if (lastReport == null) return;
-        
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
         dialog.setTitle("📊 Scan Report");
-        
         ScrollView sv = new ScrollView(this);
         TextView tv = new TextView(this);
-        String preview = lastReport.length() > 3000 ? 
-            lastReport.substring(0, 3000) + "\n\n... (full report in file)" : lastReport;
-        tv.setText(preview);
+        tv.setText(lastReport.length() > 3000 ? 
+            lastReport.substring(0, 3000) + "\n\n..." : lastReport);
         tv.setPadding(20, 20, 20, 20);
         tv.setTextSize(11);
-        tv.setTextColor(Color.BLACK);
         sv.addView(tv);
-        
         dialog.setView(sv);
         dialog.setPositiveButton("Close", null);
         dialog.setNegativeButton("Share", (d, w) -> shareReport());
         dialog.show();
     }
 
-    // ==================== REPORT: SHARE ====================
     private void shareReport() {
         if (lastReport == null) {
             Toast.makeText(this, "Generate report first!", Toast.LENGTH_SHORT).show();
             return;
         }
-        
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Port Doctor Report - " + 
-            getBuildProp("ro.product.model", "Device"));
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Port Doctor Report");
         shareIntent.putExtra(Intent.EXTRA_TEXT, lastReport);
-        startActivity(Intent.createChooser(shareIntent, "Share Report via"));
+        startActivity(Intent.createChooser(shareIntent, "Share via"));
     }
 
-    // ==================== COMMUNITY: SYNC DATABASE ====================
+    // ==================== COMMUNITY ====================
     private void syncCommunityDB() {
         progressDialog = ProgressDialog.show(this, "Syncing", 
-            "Downloading community database...", true);
+            "Downloading database...", true);
         
         new AsyncTask<Void, Void, CloudSync.SyncResult>() {
             @Override
@@ -474,26 +449,64 @@ public class MainActivity extends Activity {
             @Override
             protected void onPostExecute(CloudSync.SyncResult result) {
                 progressDialog.dismiss();
-                if (result.success) {
-                    statusText.setText("✅ " + result.message);
-                    statusText.setTextColor(Color.parseColor("#4CAF50"));
-                    if (vendorDB != null) vendorDB.saveLocalCache();
-                } else {
-                    statusText.setText("⚠️ " + result.message);
-                    statusText.setTextColor(Color.parseColor("#FF9800"));
-                }
+                String msg = result.success ? "✅ " + result.message : "⚠️ " + result.message;
+                statusText.setText(msg);
+                statusText.setTextColor(result.success ? 
+                    Color.parseColor("#4CAF50") : Color.parseColor("#FF9800"));
+                if (vendorDB != null) vendorDB.saveLocalCache();
                 Toast.makeText(MainActivity.this, result.message, Toast.LENGTH_LONG).show();
             }
         }.execute();
     }
 
-    // ==================== COMMUNITY: BROWSE FIX PACKS ====================
     private void browseFixPacks() {
         progressDialog = ProgressDialog.show(this, "Loading", 
-            "Fetching available fix packs...", true);
+            "Fetching fix packs...", true);
         
         new AsyncTask<Void, Void, List<FixPackServer.FixPack>>() {
             @Override
             protected List<FixPackServer.FixPack> doInBackground(Void... params) {
                 fixPackServer = new FixPackServer();
-                retu
+                return fixPackServer.fetchAvailablePacks();
+            }
+
+            @Override
+            protected void onPostExecute(List<FixPackServer.FixPack> packs) {
+                progressDialog.dismiss();
+                if (packs.isEmpty()) {
+                    Toast.makeText(MainActivity.this, 
+                        "No packs available yet.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Fix Packs (" + packs.size() + ")");
+                LinearLayout list = new LinearLayout(MainActivity.this);
+                list.setOrientation(LinearLayout.VERTICAL);
+                list.setPadding(20, 10, 20, 10);
+                
+                for (FixPackServer.FixPack pack : packs) {
+                    TextView tv = new TextView(MainActivity.this);
+                    tv.setText("📦 " + pack.name + "\n   ⬇ " + pack.downloads);
+                    tv.setTextColor(Color.BLACK);
+                    tv.setPadding(5, 10, 5, 10);
+                    tv.setOnClickListener(v -> downloadPack(pack));
+                    list.addView(tv);
+                }
+                
+                ScrollView sv = new ScrollView(MainActivity.this);
+                sv.addView(list);
+                builder.setView(sv);
+                builder.setPositiveButton("Close", null);
+                builder.show();
+            }
+        }.execute();
+    }
+
+    private void downloadPack(FixPackServer.FixPack pack) {
+        progressDialog = ProgressDialog.show(this, "Downloading", pack.name, true);
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                File f = FixPackServer.downloadFixPack(pack.downloadUrl, 
+                    "
