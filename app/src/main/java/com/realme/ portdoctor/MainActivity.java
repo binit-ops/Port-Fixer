@@ -44,73 +44,57 @@ public class MainActivity extends Activity {
     private String lastReport;
     private ProgressDialog progressDialog;
 
-    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         ScrollView scrollView = new ScrollView(this);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(20, 40, 20, 40);
-
         GradientDrawable bgDrawable = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             new int[]{Color.parseColor("#0F0C29"), Color.parseColor("#302B63"), Color.parseColor("#24243E")}
         );
         layout.setBackground(bgDrawable);
-
-        // Header Card
         LinearLayout headerCard = glassCard(20, 25);
         headerCard.setOrientation(LinearLayout.VERTICAL);
-
         LinearLayout titleRow = new LinearLayout(this);
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
         titleRow.setGravity(Gravity.CENTER_VERTICAL);
-
         TextView iconView = new TextView(this);
         iconView.setText("P");
         iconView.setTextSize(40);
         iconView.setTextColor(Color.parseColor("#FF6B6B"));
         iconView.setTypeface(null, android.graphics.Typeface.BOLD);
         titleRow.addView(iconView);
-
         LinearLayout titleTextCol = new LinearLayout(this);
         titleTextCol.setOrientation(LinearLayout.VERTICAL);
         titleTextCol.setPadding(15, 0, 0, 0);
-
         TextView title = new TextView(this);
         title.setText("Port Doctor");
         title.setTextSize(30);
         title.setTextColor(Color.WHITE);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         titleTextCol.addView(title);
-
         TextView subtitle = new TextView(this);
         subtitle.setText("ROM Port Diagnostic Suite");
         subtitle.setTextColor(Color.parseColor("#B0B0D0"));
         subtitle.setTextSize(13);
         titleTextCol.addView(subtitle);
-
         titleRow.addView(titleTextCol);
         headerCard.addView(titleRow);
-
         LinearLayout deviceChip = glassCard(8, 12);
         deviceChip.setPadding(15, 10, 15, 10);
-
         deviceLabel = new TextView(this);
         String cd = getprop("ro.product.model", "Unknown");
         deviceLabel.setText("Device: " + cd);
         deviceLabel.setTextColor(Color.parseColor("#FFE66D"));
         deviceLabel.setTextSize(12);
         deviceChip.addView(deviceLabel);
-
         Button changeDeviceBtn = smallBtn("Switch", "#7C4DFF", 0);
         changeDeviceBtn.setOnClickListener(v -> showDeviceSelector());
         deviceChip.addView(changeDeviceBtn);
         headerCard.addView(deviceChip);
         layout.addView(headerCard);
-
-        // Status Card
         LinearLayout statusCard = glassCard(15, 15);
         statusCard.setPadding(20, 12, 20, 12);
         statusText = new TextView(this);
@@ -119,13 +103,9 @@ public class MainActivity extends Activity {
         statusText.setTextSize(14);
         statusCard.addView(statusText);
         layout.addView(statusCard);
-
-        // Scan Button
         scanBtn = gradBtn("Scan Device for Issues", "#FF6B6B", "#4ECDC4");
         scanBtn.setOnClickListener(v -> runScan());
         layout.addView(scanBtn);
-
-        // Issues Section
         TextView issuesHeader = new TextView(this);
         issuesHeader.setText("\nDETECTED ISSUES");
         issuesHeader.setTextColor(Color.parseColor("#B0B0D0"));
@@ -133,34 +113,26 @@ public class MainActivity extends Activity {
         issuesHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         issuesHeader.setPadding(10, 20, 0, 10);
         layout.addView(issuesHeader);
-
         issueContainer = new LinearLayout(this);
         issueContainer.setOrientation(LinearLayout.VERTICAL);
         layout.addView(issueContainer);
-
-        // Action Buttons
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setPadding(0, 15, 0, 0);
-
         fixAllBtn = smallBtn("Generate Fixes", "#2ED573", 0);
         fixAllBtn.setEnabled(false);
         fixAllBtn.setAlpha(0.5f);
         fixAllBtn.setOnClickListener(v -> generateFixes());
         actionRow.addView(fixAllBtn);
-
         View gap1 = new View(this);
         gap1.setLayoutParams(new LinearLayout.LayoutParams(10, 1));
         actionRow.addView(gap1);
-
         buildBtn = smallBtn("Build Module", "#1E90FF", 0);
         buildBtn.setEnabled(false);
         buildBtn.setAlpha(0.5f);
         buildBtn.setOnClickListener(v -> buildModule());
         actionRow.addView(buildBtn);
         layout.addView(actionRow);
-
-        // Reports Section
         TextView reportsHeader = new TextView(this);
         reportsHeader.setText("\nREPORTS & SHARING");
         reportsHeader.setTextColor(Color.parseColor("#B0B0D0"));
@@ -168,24 +140,18 @@ public class MainActivity extends Activity {
         reportsHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         reportsHeader.setPadding(10, 20, 0, 10);
         layout.addView(reportsHeader);
-
         LinearLayout reportRow = new LinearLayout(this);
         reportRow.setOrientation(LinearLayout.HORIZONTAL);
-
         Button reportBtn = smallBtn("Full Report", "#7C4DFF", 0);
         reportBtn.setOnClickListener(v -> generateFullReport());
         reportRow.addView(reportBtn);
-
         View gap2 = new View(this);
         gap2.setLayoutParams(new LinearLayout.LayoutParams(8, 1));
         reportRow.addView(gap2);
-
         Button shareBtn = smallBtn("Share", "#00CED1", 0);
         shareBtn.setOnClickListener(v -> shareReport());
         reportRow.addView(shareBtn);
         layout.addView(reportRow);
-
-        // Community Section
         TextView communityHeader = new TextView(this);
         communityHeader.setText("\nCOMMUNITY TOOLS");
         communityHeader.setTextColor(Color.parseColor("#B0B0D0"));
@@ -193,29 +159,22 @@ public class MainActivity extends Activity {
         communityHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         communityHeader.setPadding(10, 20, 0, 10);
         layout.addView(communityHeader);
-
         Button syncBtn = gradBtn("Sync Community Database", "#7C4DFF", "#1E90FF");
         syncBtn.setOnClickListener(v -> syncCommunityDB());
         layout.addView(syncBtn);
-
         LinearLayout communityRow = new LinearLayout(this);
         communityRow.setOrientation(LinearLayout.HORIZONTAL);
         communityRow.setPadding(0, 8, 0, 0);
-
         Button browseBtn = smallBtn("Fix Packs", "#FFA502", 0);
         browseBtn.setOnClickListener(v -> browseFixPacks());
         communityRow.addView(browseBtn);
-
         View gap3 = new View(this);
         gap3.setLayoutParams(new LinearLayout.LayoutParams(8, 1));
         communityRow.addView(gap3);
-
         Button vendorBtn = smallBtn("Vendor", "#FF4757", 0);
         vendorBtn.setOnClickListener(v -> checkVendorFiles());
         communityRow.addView(vendorBtn);
         layout.addView(communityRow);
-
-        // Log Section
         LinearLayout logCard = glassCard(12, 15);
         logCard.setPadding(15, 12, 15, 12);
         logText = new TextView(this);
@@ -224,16 +183,13 @@ public class MainActivity extends Activity {
         logText.setTextSize(11);
         logCard.addView(logText);
         layout.addView(logCard);
-
         scrollView.addView(layout);
         setContentView(scrollView);
-
         SharedPreferences prefs = getSharedPreferences("portdoctor", MODE_PRIVATE);
         String sd = prefs.getString("device", "");
         if (!sd.isEmpty()) deviceLabel.setText("Device: " + sd);
     }
 
-    // ==================== UI HELPERS ====================
     private LinearLayout glassCard(int radius, int marginTop) {
         LinearLayout card = new LinearLayout(this);
         GradientDrawable gd = new GradientDrawable();
@@ -290,7 +246,6 @@ public class MainActivity extends Activity {
         return btn;
     }
 
-    // ==================== CORE METHODS ====================
     private void runScan() {
         scanBtn.setEnabled(false);
         scanBtn.setText("Scanning...");
@@ -357,19 +312,15 @@ public class MainActivity extends Activity {
         buildBtn.setAlpha(1.0f);
     }
 
-    // ==================== FIXED BUILD MODULE ====================
     private void buildModule() {
         if (fixes == null || fixes.isEmpty()) {
             Toast.makeText(this, "Generate fixes first!", Toast.LENGTH_SHORT).show();
             return;
         }
-
         progressDialog = ProgressDialog.show(this, "", "Building module...", true);
         final File outDir = getExternalFilesDir(null);
-
-        new AsyncTask<Void, Void, Object[]>() {
-            @Override
-            protected Object[] doInBackground(Void... params) {
+        new AsyncTask() {
+            protected Object doInBackground(Object[] p) {
                 try {
                     File zip = ModuleBuilder.buildModule(fixes, outDir);
                     return new Object[]{true, zip.getAbsolutePath()};
@@ -377,35 +328,26 @@ public class MainActivity extends Activity {
                     return new Object[]{false, e.getMessage()};
                 }
             }
-
-            @Override
-            protected void onPostExecute(Object[] result) {
+            protected void onPostExecute(Object r) {
                 progressDialog.dismiss();
-                boolean success = (Boolean) result[0];
-                if (success) {
-                    String path = (String) result[1];
+                Object[] result = (Object[]) r;
+                if ((Boolean) result[0]) {
                     statusText.setText("Module saved!");
-                    statusText.setTextColor(Color.parseColor("#4CAF50"));
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Module Built Successfully")
-                        .setMessage("Saved to:\n" + path + "\n\nFlash this file in Magisk.")
-                        .setPositiveButton("OK", null)
-                        .show();
+                        .setTitle("Module Built")
+                        .setMessage("Saved to:\n" + result[1] + "\n\nFlash in Magisk.")
+                        .setPositiveButton("OK", null).show();
                 } else {
-                    String error = (String) result[1];
                     statusText.setText("Build failed!");
-                    statusText.setTextColor(Color.parseColor("#FF4757"));
                     new AlertDialog.Builder(MainActivity.this)
                         .setTitle("Build Failed")
-                        .setMessage("Error: " + error)
-                        .setPositiveButton("OK", null)
-                        .show();
+                        .setMessage("Error: " + result[1])
+                        .setPositiveButton("OK", null).show();
                 }
             }
         }.execute();
     }
 
-    // ==================== REPORT METHODS ====================
     private void generateFullReport() {
         progressDialog = ProgressDialog.show(this, "", "Creating report...", true);
         new AsyncTask() {
@@ -479,4 +421,11 @@ public class MainActivity extends Activity {
         b.setNegativeButton("Cancel", null); b.show();
     }
 
-    private String get
+    private String getprop(String key, String def) {
+        try {
+            Process p = Runtime.getRuntime().exec("getprop " + key);
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String v = br.readLine(); br.close(); return v != null ? v.trim() : def;
+        } catch (Exception e) { return def; }
+    }
+                        }
