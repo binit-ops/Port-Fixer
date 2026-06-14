@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -191,10 +190,17 @@ public class MainActivity extends Activity {
     }
 
     private void showPreview() {
-        AlertDialog.Builder d = new AlertDialog.Builder(this); d.setTitle("Report");
-        TextView tv = new TextView(this); tv.setText(lastReport.length() > 2000 ? lastReport.substring(0, 2000) + "..." : lastReport); tv.setPadding(20, 20, 20, 20); tv.setTextSize(11);
-        d.setView(new ScrollView(this)); ((ScrollView)d.getView()).addView(tv);
-        d.setPositiveButton("Close", null); d.setNegativeButton("Share", (x, y) -> shareReport()); d.show();
+        AlertDialog.Builder d = new AlertDialog.Builder(this);
+        d.setTitle("Report");
+        ScrollView sv = new ScrollView(this);
+        TextView tv = new TextView(this);
+        tv.setText(lastReport.length() > 2000 ? lastReport.substring(0, 2000) + "..." : lastReport);
+        tv.setPadding(20, 20, 20, 20); tv.setTextSize(11);
+        sv.addView(tv);
+        d.setView(sv);
+        d.setPositiveButton("Close", null);
+        d.setNegativeButton("Share", (x, y) -> shareReport());
+        d.show();
     }
 
     private void shareReport() {
