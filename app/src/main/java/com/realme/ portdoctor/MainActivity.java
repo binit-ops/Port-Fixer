@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Gravity;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import java.io.BufferedReader;
@@ -62,7 +63,7 @@ public class MainActivity extends Activity {
 
         LinearLayout titleRow = new LinearLayout(this);
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
-        titleRow.setGravity(View.Gravity.CENTER_VERTICAL);
+        titleRow.setGravity(Gravity.CENTER_VERTICAL);
 
         TextView iconView = new TextView(this);
         iconView.setText("P");
@@ -230,7 +231,6 @@ public class MainActivity extends Activity {
         if (!sd.isEmpty()) deviceLabel.setText("Device: " + sd);
     }
 
-    // UI Helpers
     private LinearLayout glassCard(int radius, int marginTop) {
         LinearLayout card = new LinearLayout(this);
         GradientDrawable gd = new GradientDrawable();
@@ -287,7 +287,6 @@ public class MainActivity extends Activity {
         return btn;
     }
 
-    // Core methods
     private void runScan() {
         scanBtn.setEnabled(false);
         scanBtn.setText("Scanning...");
@@ -454,4 +453,4 @@ public class MainActivity extends Activity {
             String v = br.readLine(); br.close(); return v != null ? v.trim() : def;
         } catch (Exception e) { return def; }
     }
-}
+            }
