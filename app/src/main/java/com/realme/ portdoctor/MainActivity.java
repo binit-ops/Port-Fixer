@@ -17,8 +17,6 @@ import android.widget.Toast;
 import android.view.View;
 import android.view.ViewGroup;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
 import android.graphics.drawable.GradientDrawable;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -44,52 +42,33 @@ public class MainActivity extends Activity {
     private String lastReport;
     private ProgressDialog progressDialog;
 
-    // Glassmorphism Colors
-    private final String bgStart = "#0F0C29";
-    private final String bgMid = "#302B63";
-    private final String bgEnd = "#24243E";
-    private final String glassBg = "#22FFFFFF";
-    private final String glassBorder = "#33FFFFFF";
-    private final String accent = "#FF6B6B";
-    private final String accent2 = "#4ECDC4";
-    private final String accent3 = "#FFE66D";
-    private final String textPrimary = "#FFFFFF";
-    private final String textSecondary = "#B0B0D0";
-    private final String green = "#2ED573";
-    private final String red = "#FF4757";
-    private final String orange = "#FFA502";
-    private final String purple = "#7C4DFF";
-    private final String blue = "#1E90FF";
-    private final String teal = "#00CED1";
-
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Main scrollable layout
         ScrollView scrollView = new ScrollView(this);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(20, 40, 20, 40);
 
-        // Gradient background
         GradientDrawable bgDrawable = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor(bgStart), Color.parseColor(bgMid), Color.parseColor(bgEnd)}
+            new int[]{Color.parseColor("#0F0C29"), Color.parseColor("#302B63"), Color.parseColor("#24243E")}
         );
         layout.setBackground(bgDrawable);
 
-        // ==================== HEADER SECTION ====================
-        LinearLayout headerCard = createGlassCard(20, 25);
+        // Header Card
+        LinearLayout headerCard = glassCard(20, 25);
         headerCard.setOrientation(LinearLayout.VERTICAL);
 
-        // App icon and title row
         LinearLayout titleRow = new LinearLayout(this);
         titleRow.setOrientation(LinearLayout.HORIZONTAL);
         titleRow.setGravity(View.Gravity.CENTER_VERTICAL);
 
         TextView iconView = new TextView(this);
-        iconView.setText("🩺");
+        iconView.setText("P");
         iconView.setTextSize(40);
+        iconView.setTextColor(Color.parseColor("#FF6B6B"));
+        iconView.setTypeface(null, android.graphics.Typeface.BOLD);
         titleRow.addView(iconView);
 
         LinearLayout titleTextCol = new LinearLayout(this);
@@ -99,57 +78,54 @@ public class MainActivity extends Activity {
         TextView title = new TextView(this);
         title.setText("Port Doctor");
         title.setTextSize(30);
-        title.setTextColor(Color.parseColor(textPrimary));
+        title.setTextColor(Color.WHITE);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         titleTextCol.addView(title);
 
         TextView subtitle = new TextView(this);
         subtitle.setText("ROM Port Diagnostic Suite");
-        subtitle.setTextColor(Color.parseColor(textSecondary));
+        subtitle.setTextColor(Color.parseColor("#B0B0D0"));
         subtitle.setTextSize(13);
         titleTextCol.addView(subtitle);
 
         titleRow.addView(titleTextCol);
         headerCard.addView(titleRow);
 
-        // Device info chip
-        LinearLayout deviceChip = createGlassCard(8, 12);
+        LinearLayout deviceChip = glassCard(8, 12);
         deviceChip.setPadding(15, 10, 15, 10);
 
         deviceLabel = new TextView(this);
-        String cd = getprop("ro.product.model", "Unknown Device");
-        deviceLabel.setText("📱  " + cd);
-        deviceLabel.setTextColor(Color.parseColor(accent3));
+        String cd = getprop("ro.product.model", "Unknown");
+        deviceLabel.setText("Device: " + cd);
+        deviceLabel.setTextColor(Color.parseColor("#FFE66D"));
         deviceLabel.setTextSize(12);
         deviceChip.addView(deviceLabel);
 
-        Button changeDeviceBtn = createSmallButton("Switch Device", purple, 8);
+        Button changeDeviceBtn = smallBtn("Switch", "#7C4DFF", 0);
         changeDeviceBtn.setOnClickListener(v -> showDeviceSelector());
         deviceChip.addView(changeDeviceBtn);
-
         headerCard.addView(deviceChip);
         layout.addView(headerCard);
 
-        // ==================== STATUS CARD ====================
-        LinearLayout statusCard = createGlassCard(15, 15);
+        // Status Card
+        LinearLayout statusCard = glassCard(15, 15);
         statusCard.setPadding(20, 12, 20, 12);
-
         statusText = new TextView(this);
-        statusText.setText("🟢  Ready to diagnose your ROM");
-        statusText.setTextColor(Color.parseColor(textPrimary));
+        statusText.setText("Ready to diagnose your ROM");
+        statusText.setTextColor(Color.WHITE);
         statusText.setTextSize(14);
         statusCard.addView(statusText);
         layout.addView(statusCard);
 
-        // ==================== SCAN BUTTON ====================
-        scanBtn = createGradientButton("🔍  Scan Device for Issues", accent, accent2);
+        // Scan Button
+        scanBtn = gradBtn("Scan Device for Issues", "#FF6B6B", "#4ECDC4");
         scanBtn.setOnClickListener(v -> runScan());
         layout.addView(scanBtn);
 
-        // ==================== ISSUES SECTION ====================
+        // Issues Section
         TextView issuesHeader = new TextView(this);
-        issuesHeader.setText("\n📋  DETECTED ISSUES");
-        issuesHeader.setTextColor(Color.parseColor(textSecondary));
+        issuesHeader.setText("\nDETECTED ISSUES");
+        issuesHeader.setTextColor(Color.parseColor("#B0B0D0"));
         issuesHeader.setTextSize(11);
         issuesHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         issuesHeader.setPadding(10, 20, 0, 10);
@@ -159,12 +135,12 @@ public class MainActivity extends Activity {
         issueContainer.setOrientation(LinearLayout.VERTICAL);
         layout.addView(issueContainer);
 
-        // ==================== ACTION BUTTONS ====================
+        // Action Buttons
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setPadding(0, 15, 0, 0);
 
-        fixAllBtn = createSmallButton("⚡  Generate Fixes", green, 4);
+        fixAllBtn = smallBtn("Generate Fixes", "#2ED573", 0);
         fixAllBtn.setEnabled(false);
         fixAllBtn.setAlpha(0.5f);
         fixAllBtn.setOnClickListener(v -> generateFixes());
@@ -174,18 +150,17 @@ public class MainActivity extends Activity {
         gap1.setLayoutParams(new LinearLayout.LayoutParams(10, 1));
         actionRow.addView(gap1);
 
-        buildBtn = createSmallButton("📦  Build Module", blue, 4);
+        buildBtn = smallBtn("Build Module", "#1E90FF", 0);
         buildBtn.setEnabled(false);
         buildBtn.setAlpha(0.5f);
         buildBtn.setOnClickListener(v -> buildModule());
         actionRow.addView(buildBtn);
-
         layout.addView(actionRow);
 
-        // ==================== REPORTS SECTION ====================
+        // Reports Section
         TextView reportsHeader = new TextView(this);
-        reportsHeader.setText("\n📊  REPORTS & SHARING");
-        reportsHeader.setTextColor(Color.parseColor(textSecondary));
+        reportsHeader.setText("\nREPORTS & SHARING");
+        reportsHeader.setTextColor(Color.parseColor("#B0B0D0"));
         reportsHeader.setTextSize(11);
         reportsHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         reportsHeader.setPadding(10, 20, 0, 10);
@@ -194,7 +169,7 @@ public class MainActivity extends Activity {
         LinearLayout reportRow = new LinearLayout(this);
         reportRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        Button reportBtn = createSmallButton("📄  Full Report", purple, 4);
+        Button reportBtn = smallBtn("Full Report", "#7C4DFF", 0);
         reportBtn.setOnClickListener(v -> generateFullReport());
         reportRow.addView(reportBtn);
 
@@ -202,22 +177,21 @@ public class MainActivity extends Activity {
         gap2.setLayoutParams(new LinearLayout.LayoutParams(8, 1));
         reportRow.addView(gap2);
 
-        Button shareBtn = createSmallButton("📤  Share", teal, 4);
+        Button shareBtn = smallBtn("Share", "#00CED1", 0);
         shareBtn.setOnClickListener(v -> shareReport());
         reportRow.addView(shareBtn);
-
         layout.addView(reportRow);
 
-        // ==================== COMMUNITY SECTION ====================
+        // Community Section
         TextView communityHeader = new TextView(this);
-        communityHeader.setText("\n🌐  COMMUNITY TOOLS");
-        communityHeader.setTextColor(Color.parseColor(textSecondary));
+        communityHeader.setText("\nCOMMUNITY TOOLS");
+        communityHeader.setTextColor(Color.parseColor("#B0B0D0"));
         communityHeader.setTextSize(11);
         communityHeader.setTypeface(null, android.graphics.Typeface.BOLD);
         communityHeader.setPadding(10, 20, 0, 10);
         layout.addView(communityHeader);
 
-        Button syncBtn = createGradientButton("🔄  Sync Community Database", purple, blue);
+        Button syncBtn = gradBtn("Sync Community Database", "#7C4DFF", "#1E90FF");
         syncBtn.setOnClickListener(v -> syncCommunityDB());
         layout.addView(syncBtn);
 
@@ -225,7 +199,7 @@ public class MainActivity extends Activity {
         communityRow.setOrientation(LinearLayout.HORIZONTAL);
         communityRow.setPadding(0, 8, 0, 0);
 
-        Button browseBtn = createSmallButton("📦  Fix Packs", orange, 4);
+        Button browseBtn = smallBtn("Fix Packs", "#FFA502", 0);
         browseBtn.setOnClickListener(v -> browseFixPacks());
         communityRow.addView(browseBtn);
 
@@ -233,110 +207,91 @@ public class MainActivity extends Activity {
         gap3.setLayoutParams(new LinearLayout.LayoutParams(8, 1));
         communityRow.addView(gap3);
 
-        Button vendorBtn = createSmallButton("🔍  Vendor", red, 4);
+        Button vendorBtn = smallBtn("Vendor", "#FF4757", 0);
         vendorBtn.setOnClickListener(v -> checkVendorFiles());
         communityRow.addView(vendorBtn);
-
         layout.addView(communityRow);
 
-        // ==================== LOG SECTION ====================
-        LinearLayout logCard = createGlassCard(12, 15);
+        // Log Section
+        LinearLayout logCard = glassCard(12, 15);
         logCard.setPadding(15, 12, 15, 12);
-
         logText = new TextView(this);
-        logText.setText("📄  Scan log will appear here after scanning...");
+        logText.setText("Scan log will appear here...");
         logText.setTextColor(Color.parseColor("#8888AA"));
         logText.setTextSize(11);
-        logText.setLineSpacing(3, 1);
         logCard.addView(logText);
         layout.addView(logCard);
 
         scrollView.addView(layout);
         setContentView(scrollView);
 
-        // Load saved preferences
         SharedPreferences prefs = getSharedPreferences("portdoctor", MODE_PRIVATE);
         String sd = prefs.getString("device", "");
-        if (!sd.isEmpty()) {
-            deviceLabel.setText("📱  " + sd);
-        }
+        if (!sd.isEmpty()) deviceLabel.setText("Device: " + sd);
     }
 
-    // ==================== GLASS CARD HELPER ====================
-    private LinearLayout createGlassCard(int radius, int marginTop) {
+    // UI Helpers
+    private LinearLayout glassCard(int radius, int marginTop) {
         LinearLayout card = new LinearLayout(this);
         GradientDrawable gd = new GradientDrawable();
         gd.setCornerRadius(radius * 2);
-        gd.setColor(Color.parseColor(glassBg));
-        gd.setStroke(1, Color.parseColor(glassBorder));
+        gd.setColor(Color.parseColor("#22FFFFFF"));
+        gd.setStroke(1, Color.parseColor("#33FFFFFF"));
         card.setBackground(gd);
         card.setPadding(20, 15, 20, 15);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, marginTop, 0, 0);
         card.setLayoutParams(params);
-        card.setElevation(10);
         return card;
     }
 
-    // ==================== GRADIENT BUTTON HELPER ====================
-    private Button createGradientButton(String text, String color1, String color2) {
+    private Button gradBtn(String text, String c1, String c2) {
         Button btn = new Button(this);
         btn.setText(text);
         btn.setTextColor(Color.WHITE);
         btn.setTextSize(14);
         btn.setAllCaps(false);
         btn.setTypeface(null, android.graphics.Typeface.BOLD);
-
         GradientDrawable gd = new GradientDrawable(
             GradientDrawable.Orientation.LEFT_RIGHT,
-            new int[]{Color.parseColor(color1), Color.parseColor(color2)}
+            new int[]{Color.parseColor(c1), Color.parseColor(c2)}
         );
         gd.setCornerRadius(50);
         btn.setBackground(gd);
         btn.setPadding(30, 18, 30, 18);
-        btn.setElevation(8);
-
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 12, 0, 0);
         btn.setLayoutParams(params);
-
         return btn;
     }
 
-    // ==================== SMALL BUTTON HELPER ====================
-    private Button createSmallButton(String text, String color, int marginTop) {
+    private Button smallBtn(String text, String color, int mt) {
         Button btn = new Button(this);
         btn.setText(text);
         btn.setTextColor(Color.WHITE);
         btn.setTextSize(11);
         btn.setAllCaps(false);
         btn.setTypeface(null, android.graphics.Typeface.BOLD);
-
         GradientDrawable gd = new GradientDrawable();
         gd.setCornerRadius(25);
         gd.setColor(Color.parseColor(color));
         gd.setStroke(1, Color.parseColor("#44FFFFFF"));
         btn.setBackground(gd);
         btn.setPadding(18, 10, 18, 10);
-        btn.setElevation(4);
-
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
             0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-        params.setMargins(0, marginTop, 0, 0);
+        params.setMargins(0, mt, 0, 0);
         btn.setLayoutParams(params);
-
         return btn;
     }
 
-    // ==================== CORE METHODS ====================
+    // Core methods
     private void runScan() {
         scanBtn.setEnabled(false);
-        scanBtn.setText("⏳  Scanning hardware...");
-        statusText.setText("🔵  Analyzing ROM components...");
+        scanBtn.setText("Scanning...");
         issueContainer.removeAllViews();
-
         new AsyncTask() {
             protected Object doInBackground(Object[] p) {
                 SharedPreferences pr = getSharedPreferences("portdoctor", MODE_PRIVATE);
@@ -349,47 +304,37 @@ public class MainActivity extends Activity {
                 detectedIssues = (List) r;
                 displayResults();
                 scanBtn.setEnabled(true);
-                scanBtn.setText("🔍  Scan Device for Issues");
+                scanBtn.setText("Scan Device for Issues");
             }
         }.execute();
     }
 
     private void displayResults() {
         if (detectedIssues.isEmpty()) {
-            statusText.setText("🟢  No issues detected! Your ROM is healthy.");
+            statusText.setText("No issues detected!");
             logText.setText(scanner.getScanLog());
             return;
         }
-
-        statusText.setText("🟡  Found " + detectedIssues.size() + " issue(s)");
+        statusText.setText("Found " + detectedIssues.size() + " issue(s)");
         checkBoxes = new CheckBox[detectedIssues.size()];
-
         for (int i = 0; i < detectedIssues.size(); i++) {
             PortScanner.Issue issue = (PortScanner.Issue) detectedIssues.get(i);
-
-            LinearLayout issueCard = createGlassCard(10, 6);
-            issueCard.setOrientation(LinearLayout.VERTICAL);
-            issueCard.setPadding(15, 10, 15, 10);
-
+            LinearLayout ic = glassCard(10, 6);
+            ic.setOrientation(LinearLayout.VERTICAL);
+            ic.setPadding(15, 10, 15, 10);
             CheckBox cb = new CheckBox(this);
-            String sevIcon = issue.severity.equals("HIGH") ? "🔴" : 
-                             issue.severity.equals("MEDIUM") ? "🟡" : "🟢";
-            cb.setText(sevIcon + "  " + issue.name);
-            cb.setTextColor(Color.parseColor(textPrimary));
+            cb.setText("[" + issue.severity + "] " + issue.name);
+            cb.setTextColor(Color.WHITE);
             cb.setChecked(true);
             checkBoxes[i] = cb;
-
             TextView desc = new TextView(this);
             desc.setText(issue.description);
-            desc.setTextColor(Color.parseColor(textSecondary));
+            desc.setTextColor(Color.parseColor("#B0B0D0"));
             desc.setTextSize(11);
-            desc.setPadding(35, 2, 0, 0);
-
-            issueCard.addView(cb);
-            issueCard.addView(desc);
-            issueContainer.addView(issueCard);
+            ic.addView(cb);
+            ic.addView(desc);
+            issueContainer.addView(ic);
         }
-
         fixAllBtn.setEnabled(true);
         fixAllBtn.setAlpha(1.0f);
         logText.setText(scanner.getScanLog());
@@ -404,34 +349,27 @@ public class MainActivity extends Activity {
         scanner.getDetectedIssues().addAll(sel);
         fixEngine = new FixEngine(scanner);
         fixes = fixEngine.generateFixes();
-        statusText.setText("🟢  Generated " + fixes.size() + " fix(es) - Ready to build!");
+        statusText.setText("Generated " + fixes.size() + " fix(es)");
         buildBtn.setEnabled(true);
         buildBtn.setAlpha(1.0f);
     }
 
     private void buildModule() {
-        progressDialog = ProgressDialog.show(this, "", "Building Magisk module...", true);
+        progressDialog = ProgressDialog.show(this, "", "Building...", true);
         new AsyncTask() {
             protected Object doInBackground(Object[] p) {
-                try {
-                    ModuleBuilder.buildModule(fixes, "/sdcard/PortDoctor_FixPack.zip");
-                    return true;
-                } catch (Exception e) {
-                    return false;
-                }
+                try { ModuleBuilder.buildModule(fixes, "/sdcard/PortDoctor_FixPack.zip"); return true; }
+                catch (Exception e) { return false; }
             }
             protected void onPostExecute(Object r) {
                 progressDialog.dismiss();
                 if ((Boolean) r) {
-                    statusText.setText("🟢  Module saved to /sdcard/PortDoctor_FixPack.zip");
+                    statusText.setText("Module saved!");
                     new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("✨  Module Built!")
-                        .setMessage("Flash in Magisk to apply all fixes.\nReboot after flashing.")
-                        .setPositiveButton("OK", null)
-                        .show();
-                } else {
-                    statusText.setText("🔴  Build failed!");
-                }
+                        .setTitle("Module Built")
+                        .setMessage("Flash in Magisk to apply fixes.")
+                        .setPositiveButton("OK", null).show();
+                } else { statusText.setText("Build failed!"); }
             }
         }.execute();
     }
@@ -439,70 +377,81 @@ public class MainActivity extends Activity {
     private void generateFullReport() {
         progressDialog = ProgressDialog.show(this, "", "Creating report...", true);
         new AsyncTask() {
-            protected Object doInBackground(Object[] p) {
-                return ReportGenerator.generateReport(scanner, fixes);
-            }
-            protected void onPostExecute(Object r) {
-                progressDialog.dismiss();
-                lastReport = (String) r;
-                showReportPreview();
-            }
+            protected Object doInBackground(Object[] p) { return ReportGenerator.generateReport(scanner, fixes); }
+            protected void onPostExecute(Object r) { progressDialog.dismiss(); lastReport = (String) r; showReportPreview(); }
         }.execute();
     }
 
     private void showReportPreview() {
         AlertDialog.Builder d = new AlertDialog.Builder(this);
-        d.setTitle("📊  Scan Report");
+        d.setTitle("Scan Report");
         TextView tv = new TextView(this);
-        String preview = lastReport.length() > 2500 ? 
-            lastReport.substring(0, 2500) + "\n\n... (full report in /sdcard/)" : lastReport;
-        tv.setText(preview);
-        tv.setPadding(20, 20, 20, 20);
-        tv.setTextSize(11);
-        tv.setTextColor(Color.BLACK);
-        ScrollView sv = new ScrollView(this);
-        sv.addView(tv);
-        d.setView(sv);
-        d.setPositiveButton("Close", null);
-        d.setNegativeButton("Share", (dia, w) -> shareReport());
-        d.show();
+        tv.setText(lastReport.length() > 2500 ? lastReport.substring(0, 2500) + "..." : lastReport);
+        tv.setPadding(20, 20, 20, 20); tv.setTextSize(11);
+        ScrollView sv = new ScrollView(this); sv.addView(tv);
+        d.setView(sv); d.setPositiveButton("Close", null);
+        d.setNegativeButton("Share", (dia, w) -> shareReport()); d.show();
     }
 
     private void shareReport() {
-        Intent si = new Intent(Intent.ACTION_SEND);
-        si.setType("text/plain");
-        si.putExtra(Intent.EXTRA_SUBJECT, "Port Doctor Report");
-        si.putExtra(Intent.EXTRA_TEXT, lastReport);
-        startActivity(Intent.createChooser(si, "Share Report"));
+        Intent si = new Intent(Intent.ACTION_SEND); si.setType("text/plain");
+        si.putExtra(Intent.EXTRA_TEXT, lastReport); startActivity(Intent.createChooser(si, "Share"));
     }
 
     private void syncCommunityDB() {
-        progressDialog = ProgressDialog.show(this, "", "Syncing community database...", true);
+        progressDialog = ProgressDialog.show(this, "", "Syncing...", true);
         new AsyncTask() {
-            protected Object doInBackground(Object[] p) {
-                if (vendorDB == null) vendorDB = new VendorDB();
-                return CloudSync.fetchCommunityDB(vendorDB);
-            }
+            protected Object doInBackground(Object[] p) { if (vendorDB == null) vendorDB = new VendorDB(); return CloudSync.fetchCommunityDB(vendorDB); }
             protected void onPostExecute(Object r) {
-                progressDialog.dismiss();
-                CloudSync.SyncResult sr = (CloudSync.SyncResult) r;
-                statusText.setText(sr.success ? "🟢  " + sr.message : "🔴  " + sr.message);
+                progressDialog.dismiss(); CloudSync.SyncResult sr = (CloudSync.SyncResult) r;
                 Toast.makeText(MainActivity.this, sr.message, Toast.LENGTH_SHORT).show();
             }
         }.execute();
     }
 
     private void browseFixPacks() {
-        progressDialog = ProgressDialog.show(this, "", "Fetching fix packs...", true);
+        progressDialog = ProgressDialog.show(this, "", "Fetching...", true);
         new AsyncTask() {
-            protected Object doInBackground(Object[] p) {
-                fixPackServer = new FixPackServer();
-                return fixPackServer.fetchAvailablePacks();
-            }
+            protected Object doInBackground(Object[] p) { fixPackServer = new FixPackServer(); return fixPackServer.fetchAvailablePacks(); }
+            protected void onPostExecute(Object r) { progressDialog.dismiss(); Toast.makeText(MainActivity.this, ((List)r).size() + " packs", Toast.LENGTH_SHORT).show(); }
+        }.execute();
+    }
+
+    private void checkVendorFiles() {
+        progressDialog = ProgressDialog.show(this, "", "Scanning...", true);
+        new AsyncTask() {
+            protected Object doInBackground(Object[] p) { if (vendorDB == null) vendorDB = new VendorDB(); vendorDB.scanVendor(); return vendorDB.getVendorReport(); }
             protected void onPostExecute(Object r) {
                 progressDialog.dismiss();
-                List packs = (List) r;
-                if (packs.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "No packs available yet", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActiv
+                AlertDialog.Builder d = new AlertDialog.Builder(MainActivity.this);
+                d.setTitle("Vendor Analysis"); TextView tv = new TextView(MainActivity.this);
+                tv.setText((String) r); tv.setPadding(20, 20, 20, 20); d.setView(tv);
+                d.setPositiveButton("Close", null); d.show();
+            }
+        }.execute();
+    }
+
+    private void showDeviceSelector() {
+        AlertDialog.Builder b = new AlertDialog.Builder(this); b.setTitle("Set Device Info");
+        LinearLayout f = new LinearLayout(this); f.setOrientation(LinearLayout.VERTICAL); f.setPadding(30, 20, 30, 20);
+        EditText di = new EditText(this); di.setHint("Your device");
+        SharedPreferences pr = getSharedPreferences("portdoctor", MODE_PRIVATE);
+        di.setText(pr.getString("device", getprop("ro.product.model", ""))); f.addView(di);
+        EditText dn = new EditText(this); dn.setHint("Donor device");
+        dn.setText(pr.getString("donor", "")); f.addView(dn);
+        b.setView(f);
+        b.setPositiveButton("Save", (d, w) -> {
+            pr.edit().putString("device", di.getText().toString().trim()).putString("donor", dn.getText().toString().trim()).commit();
+            deviceLabel.setText("Device: " + di.getText().toString().trim());
+        });
+        b.setNegativeButton("Cancel", null); b.show();
+    }
+
+    private String getprop(String key, String def) {
+        try {
+            Process p = Runtime.getRuntime().exec("getprop " + key);
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String v = br.readLine(); br.close(); return v != null ? v.trim() : def;
+        } catch (Exception e) { return def; }
+    }
+}
